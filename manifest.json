@@ -5,7 +5,12 @@
   "description": "Save current URL as a task to Todoist with a keyboard shortcut or toolbar button",
   "browser_specific_settings": {
     "gecko": {
-      "id": "todoist-autosave@yourdomain.com"
+      "id": "todoist-autosave@yourdomain.com",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
     }
   },
   "permissions": [
