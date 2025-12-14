@@ -1,0 +1,86 @@
+// Handle keyboard shortcut
+browser.commands.onCommand.addListener((command) => {
+  if (command === "save-to-todoist") {
+    saveCurrentUrl();
+  }
+});
+
+// Handle toolbar button click (left click saves, right click handled by Firefox)
+browser.browserAction.onClicked.addListener(() => {
+  saveCurrentUrl();
+});
+
+// Add context menu for configuration
+browser.runtime.onInstalled.addListener(() => {
+  browser.menus.create({
+    id: "configure-todoist",
+    title: "Configure",
+    contexts: ["browser_action"]
+  });
+});
+
+// Handle context menu click
+browser.menus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === "configure-todoist") {
+    browser.runtime.openOptionsPage();
+  }
+});
+
+async function saveCurrentUrl() {
+  try {
+    // Get current tab
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+    const currentTab = tabs[0];
+
+    if (!currentTab || !currentTab.url) {
+      showNotification("Error", "Could not get current URL");
+      return;
+    }
+
+    // Get settings from storage
+    const settings = await browser.storage.sync.get(['apiKey', 'projectId']);
+
+    if (!settings.apiKey) {
+      showNotification("Configuration Required", "Please set your Todoist API key in the extension settings");
+      return;
+    }
+
+    if (!settings.projectId) {
+      showNotification("Configuration Required", "Please set your Todoist project ID in the extension settings");
+      return;
+    }
+
+    // Create task in Todoist
+    const taskContent = currentTab.url;
+
+    const response = await fetch('https://api.todoist.com/rest/v2/tasks', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${settings.apiKey}`
+      },
+      body: JSON.stringify({
+        content: taskContent,
+        project_id: settings.projectId
+      })
+    });
+
+    if (response.ok) {
+      showNotification("Success", "URL saved to Todoist!");
+    } else {
+      const errorData = await response.json();
+      showNotification("Error", `Failed to save: ${errorData.error || response.statusText}`);
+    }
+  } catch (error) {
+    showNotification("Error", `Failed to save URL: ${error.message}`);
+  }
+}
+
+function showNotification(title, message) {
+  browser.notifications.create({
+    type: "basic",
+    iconUrl: "icon.png",
+    title: title,
+    message: message
+  });
+}

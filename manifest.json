@@ -1,0 +1,44 @@
+{
+  "manifest_version": 2,
+  "name": "todoist-autosave",
+  "version": "1.0",
+  "description": "Save current URL as a task to Todoist with a keyboard shortcut or toolbar button",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "todoist-autosave@yourdomain.com"
+    }
+  },
+  "permissions": [
+    "activeTab",
+    "storage",
+    "notifications",
+    "menus",
+    "https://api.todoist.com/*"
+  ],
+  "browser_action": {
+    "default_icon": "icon.png",
+    "default_title": "Save to Todoist"
+  },
+  "options_ui": {
+    "page": "popup.html",
+    "open_in_tab": false
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": false
+  },
+  "commands": {
+    "save-to-todoist": {
+      "suggested_key": {
+        "default": "Ctrl+Alt+S"
+      },
+      "description": "Save current URL to Todoist"
+    }
+  },
+  "icons": {
+    "48": "icon.png",
+    "96": "icon.png"
+  }
+}
