@@ -17,12 +17,29 @@ browser.runtime.onInstalled.addListener(() => {
     title: "Configure",
     contexts: ["browser_action"]
   });
+  // Add context menu item for links to quickly save a link URL
+  browser.menus.create({
+    id: "save-link-todoist",
+    title: "Todoist autosave",
+    contexts: ["link"]
+  });
 });
 
 // Handle context menu click
 browser.menus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "configure-todoist") {
     browser.runtime.openOptionsPage();
+    return;
+  }
+
+  if (info.menuItemId === "save-link-todoist") {
+    // info.linkUrl contains the URL of the link that was right-clicked
+    if (info.linkUrl) {
+      saveUrl(info.linkUrl);
+    } else {
+      showNotification("Error", "No link URL available to save");
+    }
+    return;
   }
 });
 
@@ -34,6 +51,21 @@ async function saveCurrentUrl() {
 
     if (!currentTab || !currentTab.url) {
       showNotification("Error", "Could not get current URL");
+      return;
+    }
+
+    // Delegate to saveUrl to reuse logic
+    await saveUrl(currentTab.url);
+  } catch (error) {
+    showNotification("Error", `Failed to save URL: ${error.message}`);
+  }
+}
+
+// Save a provided URL as a Todoist task
+async function saveUrl(url) {
+  try {
+    if (!url) {
+      showNotification("Error", "No URL provided to save");
       return;
     }
 
@@ -51,7 +83,7 @@ async function saveCurrentUrl() {
     }
 
     // Create task in Todoist
-    const taskContent = currentTab.url;
+    const taskContent = url;
 
     const response = await fetch('https://api.todoist.com/rest/v2/tasks', {
       method: 'POST',
@@ -66,7 +98,7 @@ async function saveCurrentUrl() {
     });
 
     if (response.ok) {
-      showNotification("Success", "URL saved to Todoist!");
+      showNotification("Success", `${taskContent} saved`);
     } else {
       const errorData = await response.json();
       showNotification("Error", `Failed to save: ${errorData.error || response.statusText}`);
