@@ -100,8 +100,24 @@ async function saveUrl(url) {
     if (response.ok) {
       showNotification("Success", `${taskContent} saved`);
     } else {
-      const errorData = await response.json();
-      showNotification("Error", `Failed to save: ${errorData.error || response.statusText}`);
+      // Guard against non-JSON or empty responses when parsing error details
+      let errorText = response.statusText || `HTTP ${response.status}`;
+      try {
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const errorData = await response.json();
+          errorText = errorData.error || JSON.stringify(errorData) || errorText;
+        } else {
+          const text = await response.text();
+          if (text) errorText = text;
+        }
+      } catch (parseError) {
+        // Fallback if parsing fails
+        console.error('Error parsing Todoist error response:', parseError);
+      }
+
+      console.error('Todoist API error', response.status, errorText);
+      showNotification("Error", `Failed to save: ${errorText}`);
     }
   } catch (error) {
     showNotification("Error", `Failed to save URL: ${error.message}`);
