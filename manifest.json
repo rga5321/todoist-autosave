@@ -21,7 +21,9 @@
     "https://api.todoist.com/*"
   ],
   "browser_action": {
-    "default_icon": "icon.png",
+    "default_icon": {
+      "96": "icon.png"
+    },
     "default_title": "Save to Todoist"
   },
   "options_ui": {
@@ -43,7 +45,6 @@
     }
   },
   "icons": {
-    "48": "icon.png",
     "96": "icon.png"
   }
 }

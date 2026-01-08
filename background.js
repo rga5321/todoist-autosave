@@ -85,7 +85,7 @@ async function saveUrl(url) {
     // Create task in Todoist
     const taskContent = url;
 
-    const response = await fetch('https://api.todoist.com/rest/v2/tasks', {
+    const response = await fetch('https://api.todoist.com/api/v1/tasks', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
